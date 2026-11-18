@@ -1,0 +1,426 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دفتر الأستاذة | متابعة نقاط التلاميذ</title>
+<style>
+:root{--ink:#24324a;--muted:#718096;--blue:#315b8a;--blue2:#477db5;--paper:#fffdf7;--line:#dce4ec;--bg:#edf2f7;--green:#25856b}
+*{box-sizing:border-box}
+body{margin:0;font-family:Tahoma,Arial,sans-serif;color:var(--ink);background-color:var(--bg);background-image:linear-gradient(90deg,transparent 49px,rgba(72,112,158,.09) 50px,transparent 51px),linear-gradient(rgba(72,112,158,.07) 1px,transparent 1px);background-size:100% 100%,100% 34px}
+button,input{font:inherit}
+button{cursor:pointer;border:0;border-radius:12px;padding:11px 16px;background:var(--blue);color:white;font-weight:700}
+button:hover{filter:brightness(1.08)}
+.secondary{background:#e8eef5;color:var(--ink)}
+.danger{background:#a94452}
+.hidden{display:none!important}
+header{background:linear-gradient(120deg,#243e60,#477db5);color:white;padding:22px 5%;box-shadow:0 5px 18px #1b355022}
+header h1{margin:0 0 6px;font-size:clamp(22px,4vw,30px)}
+header p{margin:0;color:#e3edf8}
+.wrap{max-width:1100px;margin:28px auto;padding:0 16px}
+.paper{background:var(--paper);border:1px solid #e6e0d3;border-radius:20px;padding:24px;box-shadow:0 12px 35px #24324a12;position:relative;overflow:hidden}
+.paper:before{content:"";position:absolute;inset:0 auto 0 25px;width:2px;background:#e8a3a3;opacity:.45}
+.login{max-width:430px;margin:7vh auto}
+.login h2,.section-title{margin-top:0}
+.field{display:grid;gap:7px;margin:14px 0}
+.field label{font-weight:700}
+.field input{width:100%;padding:12px;border:1px solid var(--line);border-radius:11px;background:white;outline-color:var(--blue2)}
+.note{font-size:13px;line-height:1.8;color:#815b24;background:#fff5dc;border:1px solid #f0dfb5;border-radius:12px;padding:12px;margin-top:16px}
+.topline{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.muted{color:var(--muted)}
+.year-grid,.class-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:14px;margin-top:20px}
+.tile{min-height:112px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(145deg,#fff,#f1f6fb);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;box-shadow:0 5px 15px #24324a0a}
+.tile strong{font-size:24px;color:var(--blue)}
+.tile span{font-size:13px;color:var(--muted)}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}
+.table-wrap{overflow-x:auto;margin-top:18px}
+table{width:100%;border-collapse:collapse;min-width:720px;background:white}
+th,td{padding:11px 9px;border:1px solid var(--line);text-align:center}
+th{background:#eaf1f8;color:#29476a}
+td input{width:100%;min-width:75px;border:1px solid #d8e0e8;border-radius:7px;padding:7px;text-align:center}
+.empty{text-align:center;padding:28px;color:var(--muted)}
+.small{font-size:12px;color:var(--muted);line-height:1.7}
+@media(max-width:600px){.paper{padding:17px}.paper:before{display:none}.topline{align-items:flex-start}}
+@media print{body{background:white}.no-print,header{display:none!important}.wrap{margin:0;max-width:none}.paper{box-shadow:none;border:0}.table-wrap{overflow:visible}table{min-width:0;font-size:11px}td input{border:0}}
+</style>
+</head>
+<body>
+
+<header>
+<h1>دفتر الأستاذة</h1>
+<p>تنظيم الأقسام ومتابعة نقاط التلاميذ — من السنة الثانية إلى الرابعة متوسط</p>
+</header>
+
+<main class="wrap">
+
+<section id="loginView" class="paper login">
+<h2>تسجيل الدخول</h2>
+<p class="muted">أهلاً بكِ، سجّلي الدخول لفتح دفتر النقاط.</p>
+
+<div class="field">
+<label for="username">اسم المستخدم</label>
+<input id="username" autocomplete="username" placeholder="اكتبي اسم المستخدم">
+</div>
+
+<div class="field">
+<label for="password">كلمة السر</label>
+<input id="password" type="password" autocomplete="current-password" placeholder="اكتبي كلمة السر">
+</div>
+
+<button style="width:100%" onclick="login()">دخول</button>
+<p id="loginError" class="small" style="color:#b23b48"></p>
+
+<div class="note">
+بيانات الدخول: اسم المستخدم <b>siham dzn</b>
+وكلمة السر <b>siham.31</b>.
+يمكنك تغيير كلمة السر من داخل الموقع.
+</div>
+</section>
+
+<section id="appView" class="hidden">
+
+<div class="paper">
+<div class="topline">
+<div>
+<h2 class="section-title">المستويات الدراسية</h2>
+<p class="muted">اختاري السنة لعرض الأقسام التابعة لها.</p>
+</div>
+
+<div class="toolbar no-print">
+<button class="secondary" onclick="togglePasswordPanel()">تغيير كلمة السر</button>
+<button class="secondary" onclick="logout()">تسجيل الخروج</button>
+</div>
+</div>
+
+<div class="year-grid" id="yearGrid"></div>
+</div>
+
+<section id="passwordPanel" class="paper hidden" style="margin-top:20px">
+<h2>تغيير كلمة السر</h2>
+<p class="muted">أدخلي كلمة السر الحالية، ثم اختاري كلمة سر جديدة.</p>
+
+<div class="field">
+<label for="oldPassword">كلمة السر الحالية</label>
+<input id="oldPassword" type="password" placeholder="كلمة السر الحالية">
+</div>
+
+<div class="field">
+<label for="newPassword">كلمة السر الجديدة</label>
+<input id="newPassword" type="password" placeholder="كلمة السر الجديدة">
+</div>
+
+<div class="field">
+<label for="confirmPassword">تأكيد كلمة السر الجديدة</label>
+<input id="confirmPassword" type="password" placeholder="أعيدي كتابة كلمة السر الجديدة">
+</div>
+
+<div class="toolbar no-print">
+<button onclick="changePassword()">حفظ كلمة السر الجديدة</button>
+<button class="secondary" onclick="togglePasswordPanel(false)">إلغاء</button>
+</div>
+
+<p id="passwordMessage" class="small"></p>
+</section>
+
+<section id="classView" class="paper hidden" style="margin-top:20px">
+<div class="topline">
+<div>
+<h2 id="yearHeading" class="section-title"></h2>
+<p class="muted">اختاري القسم لفتح ورقة النقاط.</p>
+</div>
+<button class="secondary no-print" onclick="backYears()">رجوع للسنوات</button>
+</div>
+<div id="classGrid" class="class-grid"></div>
+</section>
+
+<section id="gradeView" class="paper hidden" style="margin-top:20px">
+<div class="topline">
+<div>
+<h2 id="classHeading" class="section-title"></h2>
+<p class="muted">ورقة متابعة نقاط التلاميذ</p>
+</div>
+
+<div class="toolbar no-print">
+<button class="secondary" onclick="backClasses()">رجوع للأقسام</button>
+<button onclick="window.print()">طباعة الورقة</button>
+</div>
+</div>
+
+<div class="note no-print">
+أدخلي الاسم واللقب والنقاط. النقاط تُحفظ تلقائياً على هذا الجهاز والمتصفح.
+</div>
+
+<div class="toolbar no-print">
+<button onclick="addStudent()">+ إضافة تلميذ</button>
+<button class="secondary" onclick="exportCSV()">تنزيل جدول CSV</button>
+</div>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>رقم</th>
+<th>الاسم</th>
+<th>اللقب</th>
+<th>نقطة الاختبار</th>
+<th>نقطة الفرض</th>
+<th>النقطة المستمرة</th>
+<th class="no-print">حذف</th>
+</tr>
+</thead>
+<tbody id="studentsBody"></tbody>
+</table>
+</div>
+
+<p id="emptyState" class="empty">مازال ما زدتي حتى تلميذ في هذا القسم.</p>
+<p class="small no-print">ملاحظة: هذا نموذج أولي محلي، وليس نظاماً آمناً لحفظ بيانات التلاميذ على الإنترنت.</p>
+</section>
+
+</section>
+</main>
+
+<script>
+/* بيانات دخول تجريبية فقط */
+const DEMO_USER = "siham dzn";
+const DEMO_PASS = "siham.31";
+
+let currentPassword = localStorage.getItem("teacherDemoPassword") || DEMO_PASS;
+
+const years = [
+{id:"2m",name:"السنة الثانية متوسط",short:"2 متوسط"},
+{id:"3m",name:"السنة الثالثة متوسط",short:"3 متوسط"},
+{id:"4m",name:"السنة الرابعة متوسط",short:"4 متوسط"}
+];
+
+let currentYear = "";
+let currentClass = "";
+let records = JSON.parse(localStorage.getItem("teacherGradeBookDemo") || "{}");
+
+function login(){
+const u=document.getElementById("username").value.trim();
+const p=document.getElementById("password").value;
+
+if(u===DEMO_USER && p===currentPassword){
+document.getElementById("loginView").classList.add("hidden");
+document.getElementById("appView").classList.remove("hidden");
+document.getElementById("loginError").textContent="";
+renderYears();
+}else{
+document.getElementById("loginError").textContent="اسم المستخدم أو كلمة السر غير صحيحة.";
+}
+}
+
+function togglePasswordPanel(show){
+const panel=document.getElementById("passwordPanel");
+
+if(typeof show==="boolean"){
+panel.classList.toggle("hidden",!show);
+}else{
+panel.classList.toggle("hidden");
+}
+
+document.getElementById("passwordMessage").textContent="";
+
+if(!panel.classList.contains("hidden")){
+document.getElementById("oldPassword").value="";
+document.getElementById("newPassword").value="";
+document.getElementById("confirmPassword").value="";
+panel.scrollIntoView({behavior:"smooth"});
+}
+}
+
+function changePassword(){
+const oldPass=document.getElementById("oldPassword").value;
+const newPass=document.getElementById("newPassword").value;
+const confirmPass=document.getElementById("confirmPassword").value;
+const message=document.getElementById("passwordMessage");
+
+if(oldPass!==currentPassword){
+message.style.color="#b23b48";
+message.textContent="كلمة السر الحالية غير صحيحة.";
+return;
+}
+
+if(newPass.length<6){
+message.style.color="#b23b48";
+message.textContent="اختاري كلمة سر من 6 أحرف أو أكثر.";
+return;
+}
+
+if(newPass!==confirmPass){
+message.style.color="#b23b48";
+message.textContent="تأكيد كلمة السر غير مطابق.";
+return;
+}
+
+currentPassword=newPass;
+localStorage.setItem("teacherDemoPassword",newPass);
+
+message.style.color="#25856b";
+message.textContent="تم تغيير كلمة السر على هذا الجهاز والمتصفح.";
+
+document.getElementById("oldPassword").value="";
+document.getElementById("newPassword").value="";
+document.getElementById("confirmPassword").value="";
+}
+
+function logout(){
+document.getElementById("appView").classList.add("hidden");
+document.getElementById("loginView").classList.remove("hidden");
+document.getElementById("password").value="";
+}
+
+function renderYears(){
+document.getElementById("yearGrid").innerHTML=years.map(y=>
+`<button class="tile" onclick="openYear('${y.id}')">
+<strong>${y.short}</strong>
+<span>اضغطي لعرض الأقسام</span>
+</button>`
+).join("");
+}
+
+function openYear(id){
+currentYear=id;
+const y=years.find(x=>x.id===id);
+
+document.getElementById("yearHeading").textContent=y.name;
+
+document.getElementById("classGrid").innerHTML=
+Array.from({length:7},(_,i)=>`${id}${i+1}`)
+.map(c=>`<button class="tile" onclick="openClass('${c}')">
+<strong>${c.toUpperCase()}</strong>
+<span>فتح ورقة النقاط</span>
+</button>`).join("");
+
+document.getElementById("classView").classList.remove("hidden");
+document.getElementById("gradeView").classList.add("hidden");
+document.getElementById("classView").scrollIntoView({behavior:"smooth"});
+}
+
+function openClass(c){
+currentClass=c;
+document.getElementById("classHeading").textContent="القسم "+c.toUpperCase();
+document.getElementById("gradeView").classList.remove("hidden");
+renderStudents();
+document.getElementById("gradeView").scrollIntoView({behavior:"smooth"});
+}
+
+function backYears(){
+document.getElementById("classView").classList.add("hidden");
+document.getElementById("gradeView").classList.add("hidden");
+}
+
+function backClasses(){
+document.getElementById("gradeView").classList.add("hidden");
+document.getElementById("classView").scrollIntoView({behavior:"smooth"});
+}
+
+function getList(){
+return records[currentClass] || [];
+}
+
+function save(){
+localStorage.setItem("teacherGradeBookDemo",JSON.stringify(records));
+}
+
+function addStudent(){
+if(!records[currentClass]) records[currentClass]=[];
+
+records[currentClass].push({
+first:"",
+last:"",
+exam:"",
+test:"",
+continuous:""
+});
+
+save();
+renderStudents();
+}
+
+function updateStudent(index,key,value){
+records[currentClass][index][key]=value;
+save();
+}
+
+function deleteStudent(index){
+if(!confirm("هل تريدين حذف هذا التلميذ؟"))return;
+
+records[currentClass].splice(index,1);
+save();
+renderStudents();
+}
+
+function renderStudents(){
+const list=getList();
+const body=document.getElementById("studentsBody");
+
+body.innerHTML=list.map((s,i)=>`<tr>
+<td>${i+1}</td>
+
+<td>
+<input aria-label="الاسم" value="${escapeAttr(s.first)}"
+oninput="updateStudent(${i},'first',this.value)">
+</td>
+
+<td>
+<input aria-label="اللقب" value="${escapeAttr(s.last)}"
+oninput="updateStudent(${i},'last',this.value)">
+</td>
+
+<td>
+<input aria-label="نقطة الاختبار" type="number" min="0" max="20" step="0.25"
+value="${escapeAttr(s.exam)}"
+oninput="updateStudent(${i},'exam',this.value)">
+</td>
+
+<td>
+<input aria-label="نقطة الفرض" type="number" min="0" max="20" step="0.25"
+value="${escapeAttr(s.test)}"
+oninput="updateStudent(${i},'test',this.value)">
+</td>
+
+<td>
+<input aria-label="النقطة المستمرة" type="number" min="0" max="20" step="0.25"
+value="${escapeAttr(s.continuous)}"
+oninput="updateStudent(${i},'continuous',this.value)">
+</td>
+
+<td class="no-print">
+<button class="danger" onclick="deleteStudent(${i})">حذف</button>
+</td>
+</tr>`).join("");
+
+document.getElementById("emptyState").classList.toggle("hidden",list.length>0);
+}
+
+function escapeAttr(v){
+return String(v??"")
+.replaceAll("&","&amp;")
+.replaceAll('"',"&quot;")
+.replaceAll("<","&lt;")
+.replaceAll(">","&gt;");
+}
+
+function exportCSV(){
+const rows=[
+["رقم","الاسم","اللقب","نقطة الاختبار","نقطة الفرض","النقطة المستمرة"],
+...getList().map((s,i)=>[i+1,s.first,s.last,s.exam,s.test,s.continuous])
+];
+
+const csv="\uFEFF"+rows.map(r=>
+r.map(v=>'"'+String(v??"").replaceAll('"','""')+'"').join(";")
+).join("\n");
+
+const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+const a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download=currentClass+"_points.csv";
+a.click();
+URL.revokeObjectURL(a.href);
+}
+</script>
+
+</body>
+</html>
